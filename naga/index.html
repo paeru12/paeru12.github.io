@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>NAGA</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.2.1/aframe/build/aframe-ar.min.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+  <a-scene embedded arjs>
+    <a-assets>
+      <a-asset-item id="model" src="low-poly_dragon.glb"></a-asset-item>
+      <audio id="music" src="effect.mp3" preload="auto"></audio>
+    </a-assets>
+
+    <a-marker type="pattern" url="pattern-marker.patt">
+      <a-entity gltf-model="#model" scale="0.2 0.2 0.2" position="1 0 0" rotation="0 0 0">
+      </a-entity>
+    </a-marker>
+    <a-sound src="#music" autoplay="false" loop="true"></a-sound>
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    const marker = document.querySelector('a-marker');
+    const soundEntity = document.querySelector('a-sound');
+    const bowserModel = document.getElementById('kupu-kupu');
+
+    marker.addEventListener('markerFound', () => {
+        soundEntity.components.sound.playSound();
+
+        // Calculate scale based on marker dimensions
+        const markerWidth = marker.getAttribute('width');
+        const markerHeight = marker.getAttribute('height');
+
+        // Adjust model scale proportionally to marker size while maintaining aspect ratio
+        const modelAspectRatio = bowserModel.object3D.boundingBox.max.x / bowserModel.object3D.boundingBox.max.y;
+        const scaleX = markerWidth / modelAspectRatio;
+        const scaleY = markerHeight;
+        bowserModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
+    });
+    marker.addEventListener('markerLost', () => {
+        soundEntity.components.sound.stopSound();
+    });
+</script>
+</body>
+
+</html>
