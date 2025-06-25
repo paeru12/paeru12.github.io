@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>AR.js</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs>
+        <a-assets>
+            <a-asset-item id="bunga" src="kakashi.glb"></a-asset-item>
+            <a-asset-item id="modelnya" src="naruto_uzumaki_running_animation.glb"></a-asset-item>
+            <audio id="music" src="naruto_alive.mp3" preload="auto"></audio>
+        </a-assets>
+        <a-marker preset="hiro" id="marker">
+            <a-entity id="kupu-kupu" position="-0.3 0 0" rotation="0 45 0" scale="0.5 0.5 0.5"
+                animation-mixer="clip: mixamo.com; loop: repeat; crossFadeDuration: 1" gltf-model="#modelnya"
+                gesture-handler></a-entity>
+            <a-entity id="dasar" position="0.3 0 0" rotation="0 45 0" scale="0.6 0.6 0.6"
+                animation-mixer="clip:Idle; loop: repeat; crossFadeDuration: 1" gltf-model="#bunga"></a-entity>
+
+            <a-sound src="#music" autoplay="false" loop="true"></a-sound>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+    <script>
+        const marker = document.querySelector('a-marker');
+        const soundEntity = document.querySelector('a-sound');
+        const bowserModel = document.getElementById('kupu-kupu');
+        const bowserModel1 = document.getElementById('dasar');
+
+        marker.addEventListener('markerFound', () => {
+            soundEntity.components.sound.playSound();
+
+            // Calculate scale based on marker dimensions
+            const markerWidth = marker.getAttribute('width');
+            const markerHeight = marker.getAttribute('height');
+
+            // Adjust model scale proportionally to marker size while maintaining aspect ratio
+            const modelAspectRatio = bowserModel.object3D.boundingBox.max.x / bowserModel.object3D.boundingBox.max.y;
+            const modelAspectRatio1 = bowserModel1.object3D.boundingBox.max.x / bowserModel1.object3D.boundingBox.max.y;
+            const scaleX = markerWidth / modelAspectRatio;
+            const scaleY = markerHeight;
+            bowserModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
+        });
+        marker.addEventListener('markerLost', () => {
+            soundEntity.components.sound.stopSound();
+        });
+    </script>
+</body>
+
+
+</body>
+
+</html>
