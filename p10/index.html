@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>AR.js</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs>
+        <a-assets>
+            <a-asset-item id="modelnya" src="house.glb"></a-asset-item>
+        </a-assets>
+        <a-marker preset="hiro" id="marker">
+            <a-entity id="kupu-kupu" position="-0.3 0 0" rotation="0 0 0" scale="0.5 0.5 0.5" gltf-model="#modelnya"
+                ></a-entity>            
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+    <script>
+        const marker = document.querySelector('a-marker');
+        const bowserModel = document.getElementById('kupu-kupu');
+
+        marker.addEventListener('markerFound', () => {
+
+            // Calculate scale based on marker dimensions
+            const markerWidth = marker.getAttribute('width');
+            const markerHeight = marker.getAttribute('height');
+
+            // Adjust model scale proportionally to marker size while maintaining aspect ratio
+            const modelAspectRatio = bowserModel.object3D.boundingBox.max.x / bowserModel.object3D.boundingBox.max.y;
+            const scaleX = markerWidth / modelAspectRatio;
+            const scaleY = markerHeight;
+            bowserModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
+        });
+    </script>
+</body>
+
+
+</body>
+
+</html>
