@@ -1,49 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <title>AR.js</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
-    <script
-        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
-    <script
-        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-
+  <title>Simple 3D AR with AR.js</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.2.1/aframe/build/aframe-ar.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
-        <a-assets>
-            <a-asset-item id="modelnya" src="house.glb"></a-asset-item>
-        </a-assets>
-        <a-marker preset="hiro" id="marker">
-            <a-entity id="rumah" position="0 0 0" rotation="90 25 180" scale="0.2 0.2 0.2" gltf-model="#modelnya"
-                ></a-entity>            
-        </a-marker>
-        <a-entity camera></a-entity>
-    </a-scene>
-    <script>
-        const marker = document.querySelector('a-marker');
-        const bowserModel = document.getElementById('rumah');
+  <a-scene embedded arjs>
+    <a-assets>
+      <a-asset-item id="tree" src="candles_set.glb"></a-asset-item>
+    </a-assets>
 
-        marker.addEventListener('markerFound', () => {
+    <a-marker type="pattern" url="pattern-marker.patt">
+      <a-entity gltf-model="#tree" scale="3 3 3" position="0 0 0" rotation="0 -90 90">
+      </a-entity>
+    </a-marker>
 
-            // Calculate scale based on marker dimensions
-            const markerWidth = marker.getAttribute('width');
-            const markerHeight = marker.getAttribute('height');
-
-            // Adjust model scale proportionally to marker size while maintaining aspect ratio
-            const modelAspectRatio = bowserModel.object3D.boundingBox.max.x / bowserModel.object3D.boundingBox.max.y;
-            const scaleX = markerWidth / modelAspectRatio;
-            const scaleY = markerHeight;
-            bowserModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
-        });
-    </script>
-</body>
-
-
+    <a-entity camera></a-entity>
+  </a-scene>
 </body>
 
 </html>
