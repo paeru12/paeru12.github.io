@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>UAS AR.js</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <style>
+        #horn-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background-image: url('assets/horn.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 9999;
+            display: none; 
+        }
+        #horn-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <!-- Tombol Klakson -->
+    <button id="horn-button"></button>
+
+    <a-scene embedded arjs>
+        <a-assets>
+            <a-asset-item id="street" src="./assets/road/scene.gltf"></a-asset-item>
+            <a-asset-item id="car" src="./assets/car.glb"></a-asset-item>
+            <audio id="music" src="./assets/sound.mp3" preload="auto"></audio>
+            <audio id="horn-sound" src="./assets/klakson.mp3" preload="auto"></audio>
+        </a-assets>
+        <a-marker preset="hiro" id="marker">
+            <a-entity id="cars" position="0 0 0" rotation="0 -90 90" scale="0.15 0.15 0.15" gltf-model="#car"
+                gesture-handler></a-entity>
+            <a-entity id="streets" position="0 0 0" rotation="0 -90 90" scale="0.003 0.003 0.003"
+                 gltf-model="#street"></a-entity>
+
+            <a-sound id="bg-sound" src="#music" autoplay="false" loop="true"></a-sound>
+            <a-sound id="horn" src="#horn-sound" autoplay="false"></a-sound>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        const marker = document.querySelector('a-marker');
+        const soundEntity = document.querySelector('#bg-sound');
+        const hornSound = document.querySelector('#horn');
+        const bowserModel = document.getElementById('cars');
+        const bowserModel1 = document.getElementById('streets');
+        const hornButton = document.getElementById('horn-button');
+
+        marker.addEventListener('markerFound', () => {
+            soundEntity.components.sound.playSound();
+            hornButton.style.display = 'block';
+
+            const markerWidth = marker.getAttribute('width');
+            const markerHeight = marker.getAttribute('height');
+            const modelAspectRatio = bowserModel.object3D.boundingBox.max.x / bowserModel.object3D.boundingBox.max.y;
+            const modelAspectRatio1 = bowserModel1.object3D.boundingBox.max.x / bowserModel1.object3D.boundingBox.max.y;
+            const scaleX = markerWidth / modelAspectRatio;
+            const scaleY = markerHeight;
+            bowserModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
+        });
+
+        marker.addEventListener('markerLost', () => {
+            soundEntity.components.sound.stopSound();
+            hornButton.style.display = 'none';
+        });
+
+        hornButton.addEventListener('click', () => {
+            hornSound.components.sound.playSound();
+        });
+    </script>
+</body>
+</html>
