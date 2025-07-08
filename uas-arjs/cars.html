@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>UAS AR.js</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script
+        src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <style>
+        #horn-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background-image: url('assets/horn.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 9999;
+            display: none; 
+            border: none;
+            outline: none;
+        }
+        #horn-button:active {
+            transform: scale(0.95);
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: none;
+            z-index: 9999;
+        }
+        
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        
+        .control-btn:active {
+            background-color: rgba(0,0,0,0.7);
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <!-- Tombol Klakson -->
+    <button id="horn-button"></button>
+    
+    <!-- Tombol Kontrol -->
+    <div id="controls">
+        <button class="control-btn" id="backward-btn">◀</button>
+        <button class="control-btn" id="forward-btn">▶</button>
+    </div>
+
+    <a-scene embedded arjs>
+        <a-assets>
+            <a-asset-item id="street" src="./assets/road/scene.gltf"></a-asset-item>
+            <a-asset-item id="car" src="./assets/car.glb"></a-asset-item>
+            <audio id="music" src="./assets/sound.mp3" preload="auto"></audio>
+            <audio id="horn-sound" src="./assets/klakson.mp3" preload="auto"></audio>
+            <audio id="engine-sound" src="./assets/engine.mp3" preload="auto"></audio>
+        </a-assets>
+        <a-marker preset="hiro" id="marker">
+            <a-entity id="cars" position="0 0 0" rotation="0 -90 90" scale="0.15 0.15 0.15" gltf-model="#car"
+                gesture-handler>
+                <a-animation attribute="position" dur="1000" fill="forwards" begin="moveForward"></a-animation>
+                <a-animation attribute="position" dur="1000" fill="forwards" begin="moveBackward"></a-animation>
+            </a-entity>
+            <a-entity id="streets" position="0 0 0" rotation="0 -90 90" scale="0.003 0.003 0.003"
+                 gltf-model="#street"></a-entity>
+
+            <a-sound id="bg-sound" src="#music" autoplay="false" loop="true"></a-sound>
+            <a-sound id="horn" src="#horn-sound" autoplay="false"></a-sound>
+            <a-sound id="engine" src="#engine-sound" autoplay="false" loop="true"></a-sound>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        const marker = document.querySelector('a-marker');
+        const soundEntity = document.querySelector('#bg-sound');
+        const hornSound = document.querySelector('#horn');
+        const engineSound = document.querySelector('#engine');
+        const carModel = document.getElementById('cars');
+        const bowserModel1 = document.getElementById('streets');
+        const hornButton = document.getElementById('horn-button');
+        const controls = document.getElementById('controls');
+        const forwardBtn = document.getElementById('forward-btn');
+        const backwardBtn = document.getElementById('backward-btn');
+        
+        // Variabel untuk kecepatan dan arah
+        let speed = 0;
+        let isMoving = false;
+        const moveSpeed = 0.05;
+
+        marker.addEventListener('markerFound', () => {
+            soundEntity.components.sound.playSound();
+            hornButton.style.display = 'block';
+            controls.style.display = 'flex';
+
+            const markerWidth = marker.getAttribute('width');
+            const markerHeight = marker.getAttribute('height');
+            const modelAspectRatio = carModel.object3D.boundingBox.max.x / carModel.object3D.boundingBox.max.y;
+            const modelAspectRatio1 = bowserModel1.object3D.boundingBox.max.x / bowserModel1.object3D.boundingBox.max.y;
+            const scaleX = markerWidth / modelAspectRatio;
+            const scaleY = markerHeight;
+            carModel.setAttribute('scale', { x: scaleX, y: scaleY, z: scaleX });
+        });
+
+        marker.addEventListener('markerLost', () => {
+            soundEntity.components.sound.stopSound();
+            engineSound.components.sound.stopSound();
+            hornButton.style.display = 'none';
+            controls.style.display = 'none';
+            isMoving = false;
+            speed = 0;
+        });
+
+        hornButton.addEventListener('click', () => {
+            hornSound.components.sound.playSound();
+        });
+        
+        // Fungsi untuk menggerakkan mobil
+        function moveCar() {
+            if (!isMoving) return;
+            
+            const currentPosition = carModel.getAttribute('position');
+            const newPosition = {
+                x: currentPosition.x + (Math.sin(carModel.object3D.rotation.y) * speed),
+                y: currentPosition.y,
+                z: currentPosition.z + (Math.cos(carModel.object3D.rotation.y) * speed)
+            };
+            
+            carModel.setAttribute('position', newPosition);
+            requestAnimationFrame(moveCar);
+        }
+        
+        // Event listener untuk tombol maju
+        backwardBtn.addEventListener('mousedown', () => {
+            isMoving = true;
+            speed = moveSpeed;
+            engineSound.components.sound.playSound();
+            moveCar();
+        });
+        
+        backwardBtn.addEventListener('mouseup', () => {
+            isMoving = false;
+            speed = 0;
+            engineSound.components.sound.stopSound();
+        });
+        
+        // Event listener untuk tombol mundur
+        forwardBtn.addEventListener('mousedown', () => {
+            isMoving = true;
+            speed = -moveSpeed;
+            engineSound.components.sound.playSound();
+            moveCar();
+        });
+        
+        forwardBtn.addEventListener('mouseup', () => {
+            isMoving = false;
+            speed = 0;
+            engineSound.components.sound.stopSound();
+        });
+    </script>
+</body>
+</html>
